@@ -6,3 +6,6 @@ https://github.com/mulefish/telemetry_sandbox
 
 # directions
 Um...   ...it is too complex to write out
+
+# a screencap
+![screencap.png](screencap.png)
