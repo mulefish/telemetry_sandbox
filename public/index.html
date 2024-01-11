@@ -3,7 +3,7 @@
 <head>
     <script>
         const TTFB = new Date().getTime()
-        let analytics = undefined 
+        let analytics = undefined
         let categoricalOptionalityObjects = undefined
         let transformationModule = undefined
     </script>
@@ -55,9 +55,9 @@
     <button onclick="send()">send</button>
     <button onclick="mapping()">mapping</button>
     <button onclick="save()">save</button>
-    <button onclick="showCategoricalOptionalityObjects()">optionality</button> 
-    <button onclick="showTransformationModule()">transformation</button> 
-    
+    <button onclick="showCategoricalOptionalityObjects()">optionality</button>
+    <button onclick="showTransformationModule()">transformation</button>
+
     <button onclick="load()">load</button>
     <button onclick="beautify()">beautify</button>
     <button onclick="flattenLAM()">flattenLAM</button>
@@ -141,24 +141,51 @@
             document.getElementById("feedBack").innerHTML = "flattenShopify"
         }
 
-        function verifyGivenIsInsideRecieved() {
-            const result_json_as_string = document.getElementById("resultViewer").value
-            const result_json = JSON.parse(result_json_as_string)
-            const flatResult = flattenJson(result_json)
+        // function verifyGivenIsInsideRecieved() {
+        //     const result_json_as_string = document.getElementById("resultViewer").value
+        //     const result_json = JSON.parse(result_json_as_string)
+        //     const flatResult = flattenJson(result_json)
 
-            const tdr_json_as_string = document.getElementById("tdr_area").value
-            const tdr_json = JSON.parse(tdr_json_as_string)
-            const flatTDR = flattenJson(tdr_json)
+        //     const tdr_json_as_string = document.getElementById("tdr_area").value
+        //     const tdr_json = JSON.parse(tdr_json_as_string)
+        //     const flatTDR = flattenJson(tdr_json)
+        //     try {
+        //         const isOk = Object.values(flatTDR).every(value =>
+        //             Object.values(flatResult).includes(value)
+        //         );
+        //         return isOk
+        //     } catch (boom) {
+        //         return false
+        //     }
+        // }
+
+        function verifyGivenIsInsideRecieved() {
+            const result_json_as_string = document.getElementById("resultViewer").value;
+            const result_json = JSON.parse(result_json_as_string);
+            const flatResult = flattenJson(result_json);
+
+            const tdr_json_as_string = document.getElementById("tdr_area").value;
+            const tdr_json = JSON.parse(tdr_json_as_string);
+            const flatTDR = flattenJson(tdr_json);
+            let accumulator = ""
             try {
-                const isOk = Object.values(flatTDR).every(value =>
-                    Object.values(flatResult).includes(value)
-                );
-                return isOk
+                let isOk = true;
+                Object.values(flatTDR).forEach(value => {
+                    if (!Object.values(flatResult).includes(value)) {
+                        console.log("Not included:", value);
+                        accumulator += "<li>" + value + "</li>"
+                        isOk = false;
+                    }
+                });
+                if ( isOk === true ) {
+                    return {"status":isOk, "found":""};
+                } else {
+                    return {"status":isOk, "found": "<ul>" + accumulator + "</ul>"};
+                }
             } catch (boom) {
-                return false
+                return {"status":false, "found": "<ul><li>" + boom + "</li></ul>"};
             }
         }
-
 
         async function send() {
             const selectedEvent = getSelectLamEvent()
@@ -183,11 +210,14 @@
                     document.getElementById("resultViewer").value = JSON.stringify(payload, null, 2)
                     document.getElementById("feedBack").innerHTML = "send " + selectedEvent
 
-                    const isOk = verifyGivenIsInsideRecieved()
+                    const result = verifyGivenIsInsideRecieved()
+                    const isOk = result["status"]
                     if (isOk === true) {
                         document.getElementById("feedBack").innerHTML = "send " + selectedEvent + ' <span style="color: green;">PASS</span>'
                     } else {
-                        document.getElementById("feedBack").innerHTML = "send " + selectedEvent + ' <span style="color: red;">FAIL</span>'
+                        const issuesFound = result["found"]
+
+                        document.getElementById("feedBack").innerHTML = "send " + selectedEvent + ' <span style="color: red;">FAIL</span><br>' + issuesFound
                     }
                 } else {
                     document.getElementById("resultViewer").value = "JSON is b0rken"
@@ -209,20 +239,20 @@
             }
         }
 
-        async function showCategoricalOptionalityObjects() { 
+        async function showCategoricalOptionalityObjects() {
             const selectedEvent = getSelectLamEvent()
             const obj = categoricalOptionalityObjects[selectedEvent]
-            const obj_as_string = JSON.stringify(obj, null, 2 )
+            const obj_as_string = JSON.stringify(obj, null, 2)
             document.getElementById("shopify_area").value = obj_as_string
             document.getElementById("feedBack").innerHTML = "load " + selectedEvent + " Optionality"
 
 
         }
 
-        async function showTransformationModule() { 
+        async function showTransformationModule() {
             const selectedEvent = getSelectLamEvent()
             const obj = transformationModule[selectedEvent]["default"]["$"]["payload"]
-            const obj_as_string = JSON.stringify(obj, null, 2 )
+            const obj_as_string = JSON.stringify(obj, null, 2)
             document.getElementById("shopify_area").value = obj_as_string
             document.getElementById("feedBack").innerHTML = "load " + selectedEvent + " Transformation"
         }
